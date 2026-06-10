@@ -27,6 +27,12 @@ S3 Event
 
 ---
 
+## Architecture Diagram
+
+![Architecture](./rgoto_intranet_architecture_.svg)
+
+---
+
 ## Tech Stack
 
 | Layer | Service |
