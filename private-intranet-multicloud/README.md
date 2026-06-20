@@ -23,7 +23,7 @@ CloudWatch (Logs + Monitoring) → SNS → Email Alert
 
 ## Architecture Diagram
 
-> See `rgoto-intranet-architecture.svg` in this directory.
+![Private Intranet Multi-Cloud Architecture](rgoto_intranet_architecture_v4.svg)
 
 ---
 
