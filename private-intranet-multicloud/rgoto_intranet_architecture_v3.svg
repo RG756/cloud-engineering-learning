@@ -8,16 +8,15 @@
 </defs>
 
 <!-- background -->
-<rect x="0" y="0" width="680" height="880" rx="0" fill="#F4F8FF"/>
+<rect x="0" y="0" width="680" height="880" fill="#F4F8FF"/>
 
 <!-- header band -->
-<rect x="0" y="0" width="680" height="52" rx="0" fill="#1A5FBF"/>
+<rect x="0" y="0" width="680" height="52" fill="#1A5FBF"/>
 <text x="24" y="20" style="font-size:11px;font-weight:500;fill:#B8D4FF;font-family:sans-serif;letter-spacing:1.5px">PORTFOLIO · CLOUD ARCHITECTURE</text>
-<text x="24" y="40" style="font-size:15px;font-weight:500;fill:#FFFFFF;font-family:sans-serif">R.Goto — Private Intranet · Multi-Cloud Serverless · AWS × Azure · 2026</text>
+<text x="24" y="40" style="font-size:14px;font-weight:500;fill:#FFFFFF;font-family:sans-serif">R.Goto — Private Intranet · Multi-Cloud Serverless · AWS × Azure · 2026</text>
 
 <!-- AWS region box -->
 <rect x="16" y="66" width="506" height="594" rx="14" fill="#FFFFFF" stroke="#378ADD" stroke-width="1"/>
-<rect x="16" y="66" width="506" height="26" rx="0" fill="#378ADD"/>
 <rect x="16" y="66" width="506" height="26" rx="14" fill="#378ADD"/>
 <rect x="16" y="79" width="506" height="13" fill="#378ADD"/>
 <text x="30" y="84" style="font-size:11px;font-weight:500;fill:#FFFFFF;font-family:sans-serif;letter-spacing:0.8px">AWS · ap-northeast-1 (Tokyo)</text>
@@ -68,7 +67,7 @@
 <text x="328" y="298" text-anchor="middle" dominant-baseline="central" style="font-size:13px;font-weight:500;fill:#042C53;font-family:sans-serif">AWS Lambda</text>
 <text x="328" y="316" text-anchor="middle" dominant-baseline="central" style="font-size:11px;fill:#0C447C;font-family:sans-serif">Node.js 22.x · Layer</text>
 
-<!-- Lambda to CloudWatch -->
+<!-- Lambda to CloudWatch label -->
 <text x="448" y="292" text-anchor="middle" style="font-size:11px;fill:#378ADD;font-family:sans-serif">logs</text>
 <line x1="428" y1="304" x2="466" y2="304" marker-end="url(#arr)" stroke="#378ADD" stroke-width="1.5" fill="none"/>
 
@@ -97,7 +96,7 @@
 <text x="328" y="532" text-anchor="middle" dominant-baseline="central" style="font-size:13px;font-weight:500;fill:#0C447C;font-family:sans-serif">Email notification</text>
 <text x="328" y="548" text-anchor="middle" dominant-baseline="central" style="font-size:11px;fill:#185FA5;font-family:sans-serif">Gmail · on ERROR</text>
 
-<!-- CloudTrail (Phase 7) -->
+<!-- CloudTrail Phase 7 -->
 <rect x="36" y="450" width="172" height="52" rx="8" fill="#1A5FBF" stroke="#0C447C" stroke-width="1"/>
 <text x="122" y="470" text-anchor="middle" dominant-baseline="central" style="font-size:13px;font-weight:500;fill:#FFFFFF;font-family:sans-serif">CloudTrail</text>
 <text x="122" y="488" text-anchor="middle" dominant-baseline="central" style="font-size:11px;fill:#B8D4FF;font-family:sans-serif">Audit log · S3 bucket</text>
@@ -106,43 +105,43 @@
 <line x1="122" y1="422" x2="122" y2="450" marker-end="url(#arr)" stroke="#1A5FBF" stroke-width="1.5" fill="none"/>
 <text x="130" y="439" style="font-size:11px;fill:#1A5FBF;font-family:sans-serif">mgmt events</text>
 
-<!-- AWS Backup (Phase 7) -->
+<!-- AWS Backup Phase 7 -->
 <rect x="36" y="530" width="172" height="52" rx="8" fill="#1A5FBF" stroke="#0C447C" stroke-width="1"/>
 <text x="122" y="550" text-anchor="middle" dominant-baseline="central" style="font-size:13px;font-weight:500;fill:#FFFFFF;font-family:sans-serif">AWS Backup</text>
 <text x="122" y="568" text-anchor="middle" dominant-baseline="central" style="font-size:11px;fill:#B8D4FF;font-family:sans-serif">EBS plan · daily · 7d</text>
 
-<!-- CloudTrail to AWS Backup -->
+<!-- CloudTrail to Backup -->
 <line x1="122" y1="502" x2="122" y2="530" marker-end="url(#arr)" stroke="#1A5FBF" stroke-width="1.5" fill="none"/>
 
-<!-- Phase 7 badge -->
-<rect x="228" y="588" width="294" height="24" rx="12" fill="#1A5FBF"/>
-<text x="375" y="600" text-anchor="middle" dominant-baseline="central" style="font-size:11px;font-weight:500;fill:#FFFFFF;font-family:sans-serif;letter-spacing:0.5px">✓ All 7 phases complete — Phase 7: CloudTrail + AWS Backup</text>
+<!-- Phase 7 badge - 幅を広げてテキスト収める -->
+<rect x="36" y="600" width="486" height="24" rx="12" fill="#1A5FBF"/>
+<text x="279" y="612" text-anchor="middle" dominant-baseline="central" style="font-size:11px;font-weight:500;fill:#FFFFFF;font-family:sans-serif">✓ All 7 phases complete — Phase 7: CloudTrail + AWS Backup</text>
 
 <!-- Lambda to Azure sync -->
 <text x="540" y="418" style="font-size:11px;fill:#378ADD;font-family:sans-serif">Auto sync</text>
 <path d="M 428 304 L 560 304 L 560 672" marker-end="url(#arr)" stroke="#378ADD" stroke-width="1.5" fill="none"/>
 
 <!-- Azure region box -->
-<rect x="16" y="676" width="648" height="110" rx="14" fill="#FFFFFF" stroke="#1D9E75" stroke-width="1"/>
+<rect x="16" y="676" width="648" height="118" rx="14" fill="#FFFFFF" stroke="#1D9E75" stroke-width="1"/>
 <rect x="16" y="676" width="648" height="26" rx="14" fill="#1D9E75"/>
 <rect x="16" y="689" width="648" height="13" fill="#1D9E75"/>
 <text x="30" y="694" style="font-size:11px;font-weight:500;fill:#FFFFFF;font-family:sans-serif;letter-spacing:0.8px">Microsoft Azure · Japan East · Backup</text>
 
 <!-- Azure Blob -->
-<rect x="36" y="714" width="420" height="52" rx="8" fill="#E1F5EE" stroke="#1D9E75" stroke-width="1"/>
-<text x="246" y="734" text-anchor="middle" dominant-baseline="central" style="font-size:13px;font-weight:500;fill:#085041;font-family:sans-serif">Azure Blob Storage</text>
-<text x="246" y="752" text-anchor="middle" dominant-baseline="central" style="font-size:11px;fill:#0F6E56;font-family:sans-serif">rgoto-intranet-backup · Japan East · LRS · Private</text>
+<rect x="36" y="714" width="400" height="52" rx="8" fill="#E1F5EE" stroke="#1D9E75" stroke-width="1"/>
+<text x="236" y="734" text-anchor="middle" dominant-baseline="central" style="font-size:13px;font-weight:500;fill:#085041;font-family:sans-serif">Azure Blob Storage</text>
+<text x="236" y="752" text-anchor="middle" dominant-baseline="central" style="font-size:11px;fill:#0F6E56;font-family:sans-serif">rgoto-intranet-backup · Japan East · LRS · Private</text>
 
-<!-- Legend -->
-<rect x="476" y="714" width="172" height="62" rx="8" fill="#FFFFFF" stroke="#85B7EB" stroke-width="0.8"/>
-<text x="490" y="730" dominant-baseline="central" style="font-size:12px;font-weight:500;fill:#0C447C;font-family:sans-serif">Legend</text>
-<rect x="490" y="740" width="10" height="10" rx="2" fill="#E6F1FB" stroke="#378ADD" stroke-width="0.8"/>
-<text x="506" y="746" dominant-baseline="central" style="font-size:11px;fill:#185FA5;font-family:sans-serif">AWS services</text>
-<rect x="490" y="756" width="10" height="10" rx="2" fill="#1A5FBF" stroke="#0C447C" stroke-width="0.8"/>
-<text x="506" y="762" dominant-baseline="central" style="font-size:11px;fill:#185FA5;font-family:sans-serif">Phase 7 (new)</text>
-<line x1="490" y1="773" x2="502" y2="773" stroke="#85B7EB" stroke-width="1.2" stroke-dasharray="4 3"/>
-<text x="506" y="774" dominant-baseline="central" style="font-size:11px;fill:#185FA5;font-family:sans-serif">Permission</text>
+<!-- Legend - 高さを増やしてPermissionが収まるように -->
+<rect x="452" y="710" width="196" height="76" rx="8" fill="#FFFFFF" stroke="#85B7EB" stroke-width="0.8"/>
+<text x="466" y="727" dominant-baseline="central" style="font-size:12px;font-weight:500;fill:#0C447C;font-family:sans-serif">Legend</text>
+<rect x="466" y="738" width="10" height="10" rx="2" fill="#E6F1FB" stroke="#378ADD" stroke-width="0.8"/>
+<text x="482" y="744" dominant-baseline="central" style="font-size:11px;fill:#185FA5;font-family:sans-serif">AWS services</text>
+<rect x="466" y="754" width="10" height="10" rx="2" fill="#1A5FBF" stroke="#0C447C" stroke-width="0.8"/>
+<text x="482" y="760" dominant-baseline="central" style="font-size:11px;fill:#185FA5;font-family:sans-serif">Phase 7 (new)</text>
+<line x1="466" y1="774" x2="478" y2="774" stroke="#85B7EB" stroke-width="1.2" stroke-dasharray="4 3"/>
+<text x="482" y="775" dominant-baseline="central" style="font-size:11px;fill:#185FA5;font-family:sans-serif">Permission</text>
 
 <!-- footer -->
-<text x="340" y="802" text-anchor="middle" style="font-size:10px;fill:#85B7EB;font-family:sans-serif;letter-spacing:0.3px">Serverless · Zero Trust · Multi-Cloud · AWS Tokyo + Azure Japan East</text>
+<text x="340" y="814" text-anchor="middle" style="font-size:10px;fill:#85B7EB;font-family:sans-serif;letter-spacing:0.3px">Serverless · Zero Trust · Multi-Cloud · AWS Tokyo + Azure Japan East</text>
 </svg>
