@@ -1,3 +1,28 @@
+# Security Group for EC2
+resource "aws_security_group" "ec2" {
+  name        = "${var.project_name}-ec2-sg"
+  description = "Allow HTTP inbound traffic"
+
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name        = "${var.project_name}-ec2-sg"
+    Environment = var.environment
+  }
+}
+
 # KMS Key for EBS encryption
 resource "aws_kms_key" "ebs" {
   description             = "KMS key for EBS encryption"
@@ -18,6 +43,18 @@ resource "aws_kms_alias" "ebs" {
 resource "aws_instance" "main" {
   ami           = "ami-0599b6e53ca798bb2"
   instance_type = var.instance_type
+  vpc_security_group_ids = [aws_security_group.ec2.id]
+  user_data_replace_on_change = true
+
+  user_data = <<-EOF
+    #!/bin/bash
+    dnf update -y
+    dnf install -y docker
+    systemctl start docker
+    systemctl enable docker
+    usermod -aG docker ec2-user
+    docker run -d -p 80:80 --name nginx --restart always nginx
+  EOF
 
   tags = {
     Name        = "${var.project_name}-ec2"
