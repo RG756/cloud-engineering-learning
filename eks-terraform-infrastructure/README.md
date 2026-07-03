@@ -17,7 +17,7 @@ Kubernetes autoscaling with HPA (Horizontal Pod Autoscaler).
 
 ### Scale-out: CPU exceeded 30% target → Pods scaled from 2 to 4 automatically
 
-![HPA scale out](./images/hpa-scale-out.png)
+![HPA scale out](./images/hpa-scale-out.png.png)
 
 Note the AGE column: two Pods had been running for 38 minutes; two new Pods
 were created 43 and 28 seconds ago — provisioned automatically by the HPA
@@ -25,7 +25,7 @@ with zero manual intervention.
 
 ### Scale-in: After stopping the load, Pods returned from 4 to 2 after a ~7-minute stabilization window
 
-![HPA scale in](./images/hpa-scale-in.png)
+![HPA scale in](./images/hpa-scale-in.png.png)
 
 The newer Pods were terminated first. This reflects the HPA design philosophy:
 *scale out aggressively to protect availability, scale in conservatively to
