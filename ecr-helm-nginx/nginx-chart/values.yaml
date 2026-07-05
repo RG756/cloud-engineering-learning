@@ -1,0 +1,52 @@
+replicaCount: 2
+
+image:
+  repository: 512741504549.dkr.ecr.ap-northeast-1.amazonaws.com/eks-nginx-repo
+  tag: latest
+  pullPolicy: Always
+
+service:
+  type: LoadBalancer
+  port: 80
+
+resources:
+  requests:
+    cpu: 100m
+  limits:
+    cpu: 200m
+
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 6
+  targetCPUUtilizationPercentage: 30
+
+serviceAccount:
+  create: false
+  name: ""
+
+ingress:
+  enabled: false
+
+httpRoute:
+  enabled: false
+
+podAnnotations: {}
+
+podSecurityContext: {}
+
+securityContext: {}
+
+livenessProbe:
+  httpGet:
+    path: /
+    port: http
+
+readinessProbe:
+  httpGet:
+    path: /
+    port: http
+
+volumeMounts: []
+
+volumes: []
