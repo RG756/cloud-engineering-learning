@@ -58,6 +58,7 @@ matches the deployment time — confirming EKS pulled directly from ECR.
 | 2 | `helm create` generates extra templates requiring values | `serviceaccount`, `ingress`, `httproute` templates need corresponding entries in `values.yaml` or deployment fails |
 | 3 | `helm uninstall` must precede `terraform destroy` | The LoadBalancer Service creates an ELB outside Terraform's control; skipping this step leaves an orphaned, billable resource |
 | 4 | ECR image must exist before EKS pulls it | Build and push the image before deploying the Helm chart, or Pods enter `ImagePullBackOff` state |
+| 5 | ECR repository cannot be deleted while it contains images | Images pushed to ECR are not managed by Terraform; they must be manually deleted from the console before `terraform destroy`, or the destroy fails with `RepositoryNotEmptyException` |
 
 ## Files
 
