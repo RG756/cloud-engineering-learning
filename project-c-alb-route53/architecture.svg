@@ -1,0 +1,77 @@
+<svg viewBox="0 0 700 545" xmlns="http://www.w3.org/2000/svg" font-family="system-ui, sans-serif">
+  <title>Project C Architecture Diagram</title>
+  <defs>
+    <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#999"/>
+    </marker>
+    <marker id="arrow-sm" markerWidth="6" markerHeight="6" refX="5" refY="2.5" orient="auto">
+      <path d="M0,0 L0,5 L6,2.5 z" fill="#999"/>
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="700" height="545" fill="#f8f9fa" rx="12"/>
+
+  <!-- Title -->
+  <text x="350" y="28" text-anchor="middle" font-size="15" font-weight="700" fill="#1a1a2e">Project C — AWS Web Infrastructure</text>
+  <text x="350" y="46" text-anchor="middle" font-size="11" fill="#666">Route 53 + ALB + EC2 × 2 + CloudWatch | ryogoto.click</text>
+
+  <!-- Internet -->
+  <ellipse cx="350" cy="88" rx="60" ry="26" fill="#e3f2fd" stroke="#1976d2" stroke-width="1.5"/>
+  <text x="350" y="84" text-anchor="middle" font-size="11" font-weight="600" fill="#1976d2">Internet</text>
+  <text x="350" y="98" text-anchor="middle" font-size="9" fill="#1976d2">IPv4 + IPv6</text>
+
+  <!-- Arrow: Internet to Route 53 -->
+  <line x1="350" y1="114" x2="350" y2="143" stroke="#999" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <!-- Route 53 -->
+  <rect x="245" y="143" width="210" height="52" rx="8" fill="#fff3e0" stroke="#f57c00" stroke-width="1.5"/>
+  <text x="350" y="164" text-anchor="middle" font-size="12" font-weight="700" fill="#e65100">Route 53</text>
+  <text x="350" y="179" text-anchor="middle" font-size="9" fill="#bf360c">web.ryogoto.click  A + AAAA records</text>
+  <text x="350" y="191" text-anchor="middle" font-size="9" fill="#bf360c">Alias → ALB (dualstack)</text>
+
+  <!-- Arrow: Route 53 to ALB -->
+  <line x1="350" y1="195" x2="350" y2="223" stroke="#999" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <!-- VPC boundary -->
+  <rect x="70" y="212" width="560" height="228" rx="10" fill="none" stroke="#90a4ae" stroke-width="1" stroke-dasharray="6,4"/>
+  <text x="82" y="228" font-size="9" fill="#90a4ae">VPC  10.0.0.0/16  (+ IPv6 /56)</text>
+
+  <!-- ALB -->
+  <rect x="210" y="230" width="280" height="52" rx="8" fill="#e8f5e9" stroke="#388e3c" stroke-width="1.5"/>
+  <text x="350" y="251" text-anchor="middle" font-size="12" font-weight="700" fill="#1b5e20">ALB (dualstack)</text>
+  <text x="350" y="266" text-anchor="middle" font-size="9" fill="#2e7d32">HTTP :80 · Health check / · Round-robin</text>
+  <text x="350" y="278" text-anchor="middle" font-size="9" fill="#2e7d32">SG: 0.0.0.0/0 + ::/0</text>
+
+  <!-- Arrows: ALB to EC2 x2 -->
+  <line x1="290" y1="282" x2="195" y2="338" stroke="#999" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <line x1="410" y1="282" x2="505" y2="338" stroke="#999" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <!-- EC2 #1 -->
+  <rect x="95" y="338" width="200" height="72" rx="8" fill="#fce4ec" stroke="#c2185b" stroke-width="1.5"/>
+  <text x="195" y="358" text-anchor="middle" font-size="12" font-weight="700" fill="#880e4f">EC2 Web-1</text>
+  <text x="195" y="373" text-anchor="middle" font-size="9" fill="#ad1457">ap-northeast-1a</text>
+  <text x="195" y="386" text-anchor="middle" font-size="9" fill="#ad1457">Amazon Linux 2023 · nginx</text>
+  <text x="195" y="399" text-anchor="middle" font-size="9" fill="#ad1457">t3.micro · IPv4 + IPv6</text>
+
+  <!-- EC2 #2 -->
+  <rect x="405" y="338" width="200" height="72" rx="8" fill="#fce4ec" stroke="#c2185b" stroke-width="1.5"/>
+  <text x="505" y="358" text-anchor="middle" font-size="12" font-weight="700" fill="#880e4f">EC2 Web-2</text>
+  <text x="505" y="373" text-anchor="middle" font-size="9" fill="#ad1457">ap-northeast-1c</text>
+  <text x="505" y="386" text-anchor="middle" font-size="9" fill="#ad1457">Amazon Linux 2023 · nginx</text>
+  <text x="505" y="399" text-anchor="middle" font-size="9" fill="#ad1457">t3.micro · IPv4 + IPv6</text>
+
+  <!-- Arrows: EC2 to CloudWatch (dashed) -->
+  <line x1="195" y1="410" x2="265" y2="462" stroke="#999" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrow-sm)"/>
+  <line x1="505" y1="410" x2="325" y2="462" stroke="#999" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrow-sm)"/>
+
+  <!-- CloudWatch (outside VPC) -->
+  <rect x="210" y="462" width="160" height="52" rx="8" fill="#f3e5f5" stroke="#7b1fa2" stroke-width="1.5"/>
+  <text x="290" y="482" text-anchor="middle" font-size="12" font-weight="700" fill="#4a148c">CloudWatch</text>
+  <text x="290" y="496" text-anchor="middle" font-size="9" fill="#6a1b9a">CPU alarm · UnhealthyHostCount</text>
+  <text x="290" y="508" text-anchor="middle" font-size="9" fill="#6a1b9a">→ SNS → Email</text>
+
+  <!-- Terraform badge -->
+  <rect x="575" y="518" width="112" height="20" rx="4" fill="#ede7f6"/>
+  <text x="631" y="532" text-anchor="middle" font-size="9" fill="#7b68ee" font-weight="600">Built with Terraform</text>
+</svg>
