@@ -1,0 +1,108 @@
+<svg viewBox="0 0 780 520" xmlns="http://www.w3.org/2000/svg" role="img" style="background: #ffffff;">
+  <title>Project D Serverless API Architecture</title>
+  <desc>Architecture diagram showing Client to API Gateway to Lambda to DynamoDB, with CloudWatch monitoring and SNS alerting</desc>
+
+  <style>
+    text { font-family: -apple-system, 'Segoe UI', system-ui, sans-serif; }
+    .title { font-size: 18px; font-weight: 700; fill: #1a1a2e; }
+    .subtitle { font-size: 11px; fill: #6b7280; }
+    .box-label { font-size: 13px; font-weight: 600; fill: #1a1a2e; }
+    .box-sub { font-size: 10px; fill: #6b7280; }
+    .arrow-label { font-size: 10px; fill: #6b7280; }
+    .section-label { font-size: 11px; font-weight: 600; fill: #6366f1; letter-spacing: 0.5px; }
+  </style>
+
+  <defs>
+    <marker id="arrowhead" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L8,3 L0,6" fill="#9ca3af" />
+    </marker>
+    <marker id="arrowhead-accent" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L8,3 L0,6" fill="#818cf8" />
+    </marker>
+  </defs>
+
+  <!-- Title -->
+  <text x="390" y="32" text-anchor="middle" class="title">Serverless CRUD API</text>
+  <text x="390" y="50" text-anchor="middle" class="subtitle">API Gateway + Lambda + DynamoDB — fully managed by Terraform</text>
+
+  <!-- ===== REQUEST FLOW (left column) ===== -->
+
+  <!-- Client -->
+  <rect x="145" y="80" width="140" height="50" rx="8" fill="#f3f4f6" stroke="#e5e7eb" stroke-width="1.5"/>
+  <text x="215" y="102" text-anchor="middle" class="box-label">Client</text>
+  <text x="215" y="117" text-anchor="middle" class="box-sub">curl / browser</text>
+
+  <!-- Arrow: Client → API Gateway -->
+  <line x1="215" y1="130" x2="215" y2="165" stroke="#9ca3af" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+  <text x="230" y="153" class="arrow-label">HTTPS</text>
+
+  <!-- API Gateway -->
+  <rect x="145" y="170" width="140" height="50" rx="8" fill="#eef2ff" stroke="#818cf8" stroke-width="1.5"/>
+  <text x="215" y="192" text-anchor="middle" class="box-label">API Gateway</text>
+  <text x="215" y="207" text-anchor="middle" class="box-sub">REST API / prod</text>
+
+  <!-- Arrow: API Gateway → Lambda -->
+  <line x1="215" y1="220" x2="215" y2="265" stroke="#9ca3af" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+  <text x="230" y="248" class="arrow-label">AWS_PROXY</text>
+
+  <!-- Lambda -->
+  <rect x="145" y="270" width="140" height="50" rx="8" fill="#fff7ed" stroke="#fb923c" stroke-width="1.5"/>
+  <text x="215" y="292" text-anchor="middle" class="box-label">Lambda</text>
+  <text x="215" y="307" text-anchor="middle" class="box-sub">Python 3.12 / CRUD</text>
+
+  <!-- Arrow: Lambda → DynamoDB -->
+  <line x1="215" y1="320" x2="215" y2="365" stroke="#9ca3af" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+  <text x="230" y="348" class="arrow-label">SDK (boto3)</text>
+
+  <!-- DynamoDB -->
+  <rect x="145" y="370" width="140" height="50" rx="8" fill="#f3f4f6" stroke="#e5e7eb" stroke-width="1.5"/>
+  <text x="215" y="392" text-anchor="middle" class="box-label">DynamoDB</text>
+  <text x="215" y="407" text-anchor="middle" class="box-sub">On-Demand / items</text>
+
+  <!-- ===== MONITORING (right column) ===== -->
+
+  <text x="530" y="95" text-anchor="middle" class="section-label">MONITORING</text>
+
+  <!-- CloudWatch Logs (API GW) -->
+  <rect x="430" y="170" width="160" height="50" rx="8" fill="#f3f4f6" stroke="#e5e7eb" stroke-width="1.5"/>
+  <text x="510" y="192" text-anchor="middle" class="box-label">CloudWatch Logs</text>
+  <text x="510" y="207" text-anchor="middle" class="box-sub">Access logs (API GW)</text>
+
+  <!-- Arrow: API Gateway → CW Logs -->
+  <line x1="285" y1="195" x2="425" y2="195" stroke="#818cf8" stroke-width="1.2" stroke-dasharray="5,3" marker-end="url(#arrowhead-accent)"/>
+
+  <!-- CloudWatch Logs (Lambda) -->
+  <rect x="430" y="270" width="160" height="50" rx="8" fill="#f3f4f6" stroke="#e5e7eb" stroke-width="1.5"/>
+  <text x="510" y="292" text-anchor="middle" class="box-label">CloudWatch Logs</text>
+  <text x="510" y="307" text-anchor="middle" class="box-sub">App logs (Lambda)</text>
+
+  <!-- Arrow: Lambda → CW Logs -->
+  <line x1="285" y1="295" x2="425" y2="295" stroke="#818cf8" stroke-width="1.2" stroke-dasharray="5,3" marker-end="url(#arrowhead-accent)"/>
+
+  <!-- Arrow: CW Logs → Metric Filter -->
+  <line x1="510" y1="320" x2="510" y2="355" stroke="#9ca3af" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+
+  <!-- Metric Filter -->
+  <rect x="430" y="360" width="160" height="44" rx="8" fill="#f3f4f6" stroke="#e5e7eb" stroke-width="1.5"/>
+  <text x="510" y="379" text-anchor="middle" class="box-label">Metric Filter</text>
+  <text x="510" y="394" text-anchor="middle" class="box-sub">"ERROR" → count</text>
+
+  <!-- Arrow: Metric Filter → Alarm -->
+  <line x1="510" y1="404" x2="510" y2="435" stroke="#9ca3af" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+
+  <!-- CloudWatch Alarm -->
+  <rect x="430" y="440" width="160" height="44" rx="8" fill="#fef2f2" stroke="#f87171" stroke-width="1.5"/>
+  <text x="510" y="459" text-anchor="middle" class="box-label">CloudWatch Alarm</text>
+  <text x="510" y="474" text-anchor="middle" class="box-sub">≥1 error / 5 min</text>
+
+  <!-- Arrow: Alarm → SNS -->
+  <line x1="590" y1="462" x2="635" y2="462" stroke="#9ca3af" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+
+  <!-- SNS -->
+  <rect x="640" y="440" width="110" height="44" rx="8" fill="#fef2f2" stroke="#f87171" stroke-width="1.5"/>
+  <text x="695" y="459" text-anchor="middle" class="box-label">SNS</text>
+  <text x="695" y="474" text-anchor="middle" class="box-sub">→ Email alert</text>
+
+  <!-- IAM label -->
+  <text x="530" y="515" text-anchor="middle" class="subtitle">IAM roles: Lambda (DynamoDB + Logs) · API Gateway (CloudWatch)</text>
+</svg>
