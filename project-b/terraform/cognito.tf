@@ -40,7 +40,9 @@ resource "aws_cognito_user_pool_client" "main" {
   callback_urls = ["https://example.com/callback"]
   logout_urls   = ["https://example.com/logout"]
 
-  supported_identity_providers = ["COGNITO"]
+  supported_identity_providers = ["COGNITO", "EntraID"]
+
+  depends_on = [aws_cognito_identity_provider.entra_id]
 
   generate_secret = false
 }

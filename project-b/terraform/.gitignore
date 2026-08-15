@@ -11,3 +11,6 @@ crash.*.log
 
 # Provider binaries
 *.exe
+
+# Entra metadata
+entra-metadata.xml
