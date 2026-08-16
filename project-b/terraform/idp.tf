@@ -13,6 +13,8 @@ resource "aws_cognito_identity_provider" "entra_id" {
 
   attribute_mapping = {
     email    = "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress"
-    username = "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"
+    # name → objectidentifier に変更（OIDはスペースなし・永続的・一意）
+    username = "http://schemas.microsoft.com/identity/claims/objectidentifier"
+    name     = "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"
   }
 }

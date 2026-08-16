@@ -18,6 +18,13 @@ resource "aws_cognito_user_pool" "main" {
     mutable             = true
   }
 
+  schema {
+    name                = "name"
+    attribute_data_type = "String"
+    required            = false
+    mutable             = true
+  }
+
   auto_verified_attributes = ["email"]
 
   tags = {

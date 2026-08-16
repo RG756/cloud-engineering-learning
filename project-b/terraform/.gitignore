@@ -14,3 +14,7 @@ crash.*.log
 
 # Entra metadata
 entra-metadata.xml
+
+# Variable values (機密値を含む可能性)
+*.tfvars
+*.tfvars.json
