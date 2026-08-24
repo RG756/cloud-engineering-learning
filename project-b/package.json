@@ -1,0 +1,18 @@
+{
+  "name": "project-b",
+  "version": "1.0.0",
+  "description": "A hands-on cloud engineering project demonstrating enterprise identity federation between Microsoft Entra ID (formerly Azure AD) and AWS Cognito using SAML 2.0, with infrastructure managed by Terraform.",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {},
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "@playwright/test": "^1.62.1",
+    "@types/node": "^26.2.0"
+  }
+}
