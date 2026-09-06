@@ -3,6 +3,9 @@ import sys
 import os
 from unittest.mock import patch, MagicMock
 
+# テスト用環境変数を設定
+os.environ['TABLE_NAME'] = 'test-table'
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'lambda'))
 
 # boto3のDynamoDB接続をモックに差し替え
