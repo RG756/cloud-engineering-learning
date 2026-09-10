@@ -43,16 +43,21 @@ resource "aws_iam_role_policy" "codebuild_policy" {
 
 # CodeBuildプロジェクト
 resource "aws_codebuild_project" "project_d" {
-  name          = "project-d-build"
-  description   = "CI build and test for Project D serverless API"
-  service_role  = aws_iam_role.codebuild_role.arn
-  build_timeout = 10
+  name           = "project-d-build"
+  description    = "CI build and test for Project D serverless API"
+  service_role   = aws_iam_role.codebuild_role.arn
+  build_timeout  = 10
+  source_version = "e-phase2-codebuild-deploy"
 
   source {
     type            = "GITHUB"
     location        = "https://github.com/RG756/cloud-engineering-learning"
     buildspec       = "buildspec.yml"
     git_clone_depth = 1
+    
+    git_submodules_config {
+      fetch_submodules = false
+    }
   }
 
   environment {
