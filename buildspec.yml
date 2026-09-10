@@ -1,0 +1,19 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      python: 3.11
+    commands:
+      - pip install pytest boto3 moto
+
+  build:
+    commands:
+      - echo "Running unit tests..."
+      - cd project-d-serverless-api
+      - python -m pytest tests/ -v
+
+artifacts:
+  files:
+    - project-d-serverless-api/lambda/index.py
+  discard-paths: no
