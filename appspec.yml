@@ -7,3 +7,4 @@ Resources:
         Alias: "live"
         CurrentVersion: "<CURRENT_VERSION>"
         TargetVersion: "<TARGET_VERSION>"
+Hooks: []
