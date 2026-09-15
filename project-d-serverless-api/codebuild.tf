@@ -36,6 +36,21 @@ resource "aws_iam_role_policy" "codebuild_policy" {
           "s3:GetBucketLocation"
         ]
         Resource = "*"
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "lambda:PublishVersion",
+          "lambda:ListAliases",
+          "lambda:GetAlias",
+          "lambda:UpdateAlias",
+          "codedeploy:CreateDeployment",
+          "codedeploy:GetDeployment",
+          "codedeploy:GetDeploymentConfig",
+          "codedeploy:RegisterApplicationRevision",
+          "codedeploy:GetApplicationRevision"
+        ]
+        Resource = "*"
       }
     ]
   })

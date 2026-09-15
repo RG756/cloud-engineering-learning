@@ -12,8 +12,21 @@ phases:
       - echo "Running unit tests..."
       - cd project-d-serverless-api
       - python -m pytest tests/ -v
+      - cd ..
+
+  post_build:
+    commands:
+      - echo "Publishing new Lambda version..."
+      - aws lambda publish-version --function-name project-d-api --query 'Version' --output text > /tmp/new_version.txt
+      - NEW_VERSION=$(cat /tmp/new_version.txt)
+      - echo "New version is $NEW_VERSION"
+      - sed -i "s/<CURRENT_VERSION>/$(aws lambda list-aliases --function-name project-d-api --query 'Aliases[?Name==`live`].FunctionVersion' --output text)/g" appspec.yml
+      - sed -i "s/<TARGET_VERSION>/$NEW_VERSION/g" appspec.yml
+      - echo "Creating CodeDeploy deployment..."
+      - aws deploy create-deployment --application-name project-d-deploy --deployment-group-name project-d-deployment-group --revision revisionType=AppSpecContent,appSpecContent={content="$(cat appspec.yml)"}
 
 artifacts:
   files:
+    - appspec.yml
     - project-d-serverless-api/lambda/index.py
   discard-paths: no
