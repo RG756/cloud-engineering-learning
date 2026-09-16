@@ -1,0 +1,10 @@
+version: 0.0
+Resources:
+  - myLambdaFunction:
+      Type: AWS::Lambda::Function
+      Properties:
+        Name: "project-d-api"
+        Alias: "live"
+        CurrentVersion: "<CURRENT_VERSION>"
+        TargetVersion: "<TARGET_VERSION>"
+Hooks: []
