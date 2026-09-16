@@ -24,8 +24,24 @@ phases:
       - echo "Current version is $CURRENT_VERSION"
       - sed -i "s/<CURRENT_VERSION>/$CURRENT_VERSION/g" appspec.yml
       - sed -i "s/<TARGET_VERSION>/$NEW_VERSION/g" appspec.yml
-      - APPSPEC_CONTENT=$(python3 -c 'import json; print(json.dumps(open("appspec.yml").read()))')
-      - aws deploy create-deployment --application-name project-d-deploy --deployment-group-name project-d-deployment-group --revision "revisionType=AppSpecContent,appSpecContent={content=$APPSPEC_CONTENT}"
+      - |
+        python3 -c "
+        import json, subprocess
+        with open('appspec.yml') as f:
+            content = f.read()
+        revision = {
+            'revisionType': 'AppSpecContent',
+            'appSpecContent': {'content': content}
+        }
+        cmd = ['aws', 'deploy', 'create-deployment',
+               '--application-name', 'project-d-deploy',
+               '--deployment-group-name', 'project-d-deployment-group',
+               '--revision', json.dumps(revision)]
+        result = subprocess.run(cmd, capture_output=True, text=True)
+        print(result.stdout)
+        print(result.stderr)
+        exit(result.returncode)
+        "
 
 artifacts:
   files:
