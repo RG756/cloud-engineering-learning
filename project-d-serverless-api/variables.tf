@@ -19,3 +19,9 @@ variable "alarm_email" {
   type        = string
   sensitive   = true
 }
+
+variable "slack_webhook_url" {
+  description = "Slack Incoming Webhook URL for CloudWatch alarm notifications"
+  type        = string
+  sensitive   = true
+}
