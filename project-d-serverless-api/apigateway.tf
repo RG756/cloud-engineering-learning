@@ -157,6 +157,7 @@ resource "aws_api_gateway_stage" "prod" {
   rest_api_id   = aws_api_gateway_rest_api.api.id
   deployment_id = aws_api_gateway_deployment.deploy.id
   stage_name    = "prod"
+  xray_tracing_enabled = true
 
   # Access logging: records who called which endpoint and when
   access_log_settings {

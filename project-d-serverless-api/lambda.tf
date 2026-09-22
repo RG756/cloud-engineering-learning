@@ -28,6 +28,10 @@ resource "aws_lambda_function" "api" {
   tags = {
     Project = var.project_name
   }
+
+  tracing_config {
+    mode = "Active"
+  }
 }
 
 # =============================================================================
