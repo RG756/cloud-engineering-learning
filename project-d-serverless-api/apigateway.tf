@@ -76,7 +76,7 @@ resource "aws_api_gateway_integration" "get_items" {
   http_method             = aws_api_gateway_method.get_items.http_method
   type                    = "AWS_PROXY"
   integration_http_method = "POST"
-  uri                     = aws_lambda_function.api.invoke_arn
+  uri                     = aws_lambda_alias.live.invoke_arn
 }
 
 resource "aws_api_gateway_integration" "post_items" {
@@ -85,7 +85,7 @@ resource "aws_api_gateway_integration" "post_items" {
   http_method             = aws_api_gateway_method.post_items.http_method
   type                    = "AWS_PROXY"
   integration_http_method = "POST"
-  uri                     = aws_lambda_function.api.invoke_arn
+  uri                     = aws_lambda_alias.live.invoke_arn
 }
 
 resource "aws_api_gateway_integration" "get_item" {
@@ -94,7 +94,7 @@ resource "aws_api_gateway_integration" "get_item" {
   http_method             = aws_api_gateway_method.get_item.http_method
   type                    = "AWS_PROXY"
   integration_http_method = "POST"
-  uri                     = aws_lambda_function.api.invoke_arn
+  uri                     = aws_lambda_alias.live.invoke_arn
 }
 
 resource "aws_api_gateway_integration" "put_item" {
@@ -103,7 +103,7 @@ resource "aws_api_gateway_integration" "put_item" {
   http_method             = aws_api_gateway_method.put_item.http_method
   type                    = "AWS_PROXY"
   integration_http_method = "POST"
-  uri                     = aws_lambda_function.api.invoke_arn
+  uri                     = aws_lambda_alias.live.invoke_arn
 }
 
 resource "aws_api_gateway_integration" "delete_item" {
@@ -112,7 +112,7 @@ resource "aws_api_gateway_integration" "delete_item" {
   http_method             = aws_api_gateway_method.delete_item.http_method
   type                    = "AWS_PROXY"
   integration_http_method = "POST"
-  uri                     = aws_lambda_function.api.invoke_arn
+  uri                     = aws_lambda_alias.live.invoke_arn
 }
 
 # =============================================================================
@@ -123,6 +123,7 @@ resource "aws_lambda_permission" "apigw" {
   statement_id  = "AllowAPIGatewayInvoke"
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.api.function_name
+  qualifier     = aws_lambda_alias.live.name
   principal     = "apigateway.amazonaws.com"
   source_arn    = "${aws_api_gateway_rest_api.api.execution_arn}/*/*"
 }
