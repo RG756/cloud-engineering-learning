@@ -16,6 +16,9 @@ phases:
 
   post_build:
     commands:
+      - echo "Updating Lambda function code..."
+      - aws lambda update-function-code --function-name project-d-api --zip-file fileb://project-d-serverless-api/lambda_function.zip --no-cli-pager
+      - aws lambda wait function-updated --function-name project-d-api
       - echo "Publishing new Lambda version..."
       - aws lambda publish-version --function-name project-d-api --query 'Version' --output text > /tmp/new_version.txt
       - NEW_VERSION=$(cat /tmp/new_version.txt)
@@ -48,3 +51,4 @@ artifacts:
     - appspec.yml
     - project-d-serverless-api/lambda/index.py
   discard-paths: no
+  
