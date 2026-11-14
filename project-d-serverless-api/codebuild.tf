@@ -62,12 +62,12 @@ resource "aws_codebuild_project" "project_d" {
   description    = "CI build and test for Project D serverless API"
   service_role   = aws_iam_role.codebuild_role.arn
   build_timeout  = 10
-  source_version = "e-phase2-codebuild-deploy"
+  source_version = "main"
 
   source {
     type            = "GITHUB"
     location        = "https://github.com/RG756/cloud-engineering-learning"
-    buildspec       = "buildspec.yml"
+    buildspec       = "project-f-bedrock-ai/buildspec.yml"
     git_clone_depth = 1
     
     git_submodules_config {

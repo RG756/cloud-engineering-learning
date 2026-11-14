@@ -94,3 +94,22 @@ resource "aws_iam_role_policy_attachment" "apigw_cloudwatch" {
 resource "aws_api_gateway_account" "main" {
   cloudwatch_role_arn = aws_iam_role.apigw_cloudwatch.arn
 }
+
+# Policy: Allow Lambda to invoke Bedrock models
+data "aws_iam_policy_document" "lambda_bedrock" {
+  statement {
+    actions = [
+      "bedrock:InvokeModel",
+    ]
+
+    resources = [
+      "*"
+    ]
+  }
+}
+
+resource "aws_iam_role_policy" "lambda_bedrock" {
+  name   = "${var.project_name}-lambda-bedrock"
+  role   = aws_iam_role.lambda_role.id
+  policy = data.aws_iam_policy_document.lambda_bedrock.json
+}
