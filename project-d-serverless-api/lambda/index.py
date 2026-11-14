@@ -13,6 +13,9 @@ import os
 import uuid
 from datetime import datetime
 
+# Initialize clients
+bedrock = boto3.client("bedrock-runtime", region_name="ap-northeast-1")
+
 # Structured logging setup
 logger = logging.getLogger()
 logger.setLevel(os.environ.get("LOG_LEVEL", "INFO"))
@@ -100,6 +103,8 @@ def route_http(event):
         return api_response(200, get_item(item_id))
     elif method == "GET":
         return api_response(200, list_items())
+    elif method == "POST" and path == "/ask":
+        return api_response(200, ask_bedrock(body))
     elif method == "POST":
         return api_response(201, create_item(body))
     elif method == "PUT" and item_id:
@@ -187,4 +192,25 @@ def api_response(status_code, body):
         },
         "body": json.dumps(body, default=str),
     }
+
+
+def ask_bedrock(data):
+    """Call Amazon Bedrock Claude model and return the response."""
+    prompt = data.get("prompt", "Hello!")
     
+    response = bedrock.invoke_model(
+        modelId="jp.anthropic.claude-haiku-4-5-20251001-v1:0",
+        body=json.dumps({
+            "anthropic_version": "bedrock-2023-05-31",
+            "max_tokens": 512,
+            "messages": [
+                {"role": "user", "content": prompt}
+            ]
+        })
+    )
+    
+    result = json.loads(response["body"].read())
+    return {
+        "prompt": prompt,
+        "response": result["content"][0]["text"]
+    }

@@ -22,6 +22,30 @@ resource "aws_api_gateway_resource" "item" {
   path_part   = "{id}"
 }
 
+# Resource: /ask
+resource "aws_api_gateway_resource" "ask" {
+  rest_api_id = aws_api_gateway_rest_api.api.id
+  parent_id   = aws_api_gateway_rest_api.api.root_resource_id
+  path_part   = "ask"
+}
+
+# POST /ask - Ask Bedrock
+resource "aws_api_gateway_method" "post_ask" {
+  rest_api_id   = aws_api_gateway_rest_api.api.id
+  resource_id   = aws_api_gateway_resource.ask.id
+  http_method   = "POST"
+  authorization = "NONE"
+}
+
+resource "aws_api_gateway_integration" "post_ask" {
+  rest_api_id             = aws_api_gateway_rest_api.api.id
+  resource_id             = aws_api_gateway_resource.ask.id
+  http_method             = aws_api_gateway_method.post_ask.http_method
+  type                    = "AWS_PROXY"
+  integration_http_method = "POST"
+  uri                     = aws_lambda_alias.live.invoke_arn
+}
+
 # =============================================================================
 # Methods
 # =============================================================================
@@ -142,6 +166,7 @@ resource "aws_api_gateway_deployment" "deploy" {
     aws_api_gateway_integration.get_item,
     aws_api_gateway_integration.put_item,
     aws_api_gateway_integration.delete_item,
+    aws_api_gateway_integration.post_ask,
   ]
 
   # Force redeployment on any config change
