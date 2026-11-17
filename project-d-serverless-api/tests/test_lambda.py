@@ -4,6 +4,7 @@ import os
 from unittest.mock import patch, MagicMock
 
 os.environ['TABLE_NAME'] = 'test-table'
+os.environ['CHAT_HISTORY_TABLE_NAME'] = 'test-chat-history'
 os.environ['AWS_DEFAULT_REGION'] = 'ap-northeast-1'
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'lambda'))
