@@ -21,6 +21,7 @@ resource "aws_lambda_function" "api" {
   environment {
     variables = {
       TABLE_NAME = aws_dynamodb_table.main.name
+      CHAT_HISTORY_TABLE_NAME = aws_dynamodb_table.chat_history.name
       LOG_LEVEL  = "INFO"
     }
   }

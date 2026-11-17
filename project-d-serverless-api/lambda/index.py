@@ -1,9 +1,9 @@
 """
-Project D: Serverless CRUD API - Lambda Handler
-Handles Create, Read, Update, Delete operations on DynamoDB.
-Supports both API Gateway proxy integration and direct Lambda invoke.
+Project F: Bedrock AI API - Lambda Handler
+Handles CRUD operations (from Project D) and AI chat via Amazon Bedrock.
 
-Session 3: Added structured logging and improved error handling.
+Phase 2: Added DynamoDB chat history, improved endpoint design,
+         and strengthened error handling.
 """
 
 import json
@@ -11,28 +11,39 @@ import boto3
 import logging
 import os
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
+from botocore.exceptions import ClientError
 
-# Initialize clients
+# ---------------------------------------------------------------------------
+# Clients & configuration
+# ---------------------------------------------------------------------------
 bedrock = boto3.client("bedrock-runtime", region_name="ap-northeast-1")
+dynamodb = boto3.resource("dynamodb")
+table = dynamodb.Table(os.environ["TABLE_NAME"])
+chat_table = dynamodb.Table(os.environ["CHAT_HISTORY_TABLE_NAME"])
 
-# Structured logging setup
+BEDROCK_MODEL_ID = "jp.anthropic.claude-haiku-4-5-20251001-v1:0"
+CHAT_TTL_DAYS = 30  # 会話履歴の保持期間
+
+# Timezone
+UTC = timezone.utc
+JST = timezone(timedelta(hours=9))
+
+# Structured logging
 logger = logging.getLogger()
 logger.setLevel(os.environ.get("LOG_LEVEL", "INFO"))
 
-# Initialize DynamoDB resource
-dynamodb = boto3.resource("dynamodb")
-table = dynamodb.Table(os.environ["TABLE_NAME"])
 
-
+# ---------------------------------------------------------------------------
+# Main handler
+# ---------------------------------------------------------------------------
 def handler(event, context):
     """
     Main Lambda handler.
-    Routes requests based on HTTP method and path (API Gateway proxy integration).
+    Routes HTTP requests from API Gateway proxy integration.
     Also supports direct invoke with 'action' field for backward compatibility.
     """
     try:
-        # Log every incoming request for CloudWatch visibility
         if "httpMethod" in event:
             logger.info(json.dumps({
                 "message": "API Request",
@@ -43,12 +54,9 @@ def handler(event, context):
             }))
             return route_http(event)
 
-        # Direct invoke format (backward compatibility with Session 1)
+        # Direct invoke (backward compatibility)
         action = event.get("action", "")
-        logger.info(json.dumps({
-            "message": "Direct Invoke",
-            "action": action,
-        }))
+        logger.info(json.dumps({"message": "Direct Invoke", "action": action}))
 
         if action == "create":
             return api_response(201, create_item(event))
@@ -84,21 +92,20 @@ def handler(event, context):
         return api_response(500, {"error": "Internal server error"})
 
 
+# ---------------------------------------------------------------------------
+# HTTP routing
+# ---------------------------------------------------------------------------
 def route_http(event):
     """Route based on HTTP method and path."""
     method = event["httpMethod"]
     path = event.get("path", "")
-    
-    # Extract item ID from path: /items/{id}
     path_params = event.get("pathParameters") or {}
     item_id = path_params.get("id")
 
-    # Parse JSON body for POST/PUT
     body = {}
     if event.get("body"):
         body = json.loads(event["body"])
 
-    # Routing
     if method == "GET" and item_id:
         return api_response(200, get_item(item_id))
     elif method == "GET":
@@ -115,32 +122,117 @@ def route_http(event):
         return api_response(400, {"error": f"Unsupported: {method} {path}"})
 
 
+# ---------------------------------------------------------------------------
+# Bedrock AI endpoint  (/ask)
+# ---------------------------------------------------------------------------
+def ask_bedrock(data):
+    """
+    Call Amazon Bedrock Claude model and save conversation history to DynamoDB.
+
+    Request body:
+        question   (str, required): User's question
+        session_id (str, optional): Session ID for conversation continuity.
+                                    Auto-generated if omitted.
+
+    Response:
+        question   (str): Echo of the question
+        answer     (str): Bedrock's response
+        session_id (str): Session ID (use this for follow-up questions)
+        model      (str): Model ID used
+        asked_at   (str): Timestamp in JST (ISO8601)
+    """
+    # --- Input validation ---
+    question = data.get("question", "").strip()
+    if not question:
+        raise ValueError("'question' is required and must not be empty")
+    if len(question) > 1000:
+        raise ValueError("'question' must be 1000 characters or less")
+
+    session_id = data.get("session_id") or str(uuid.uuid4())
+
+    # --- Call Bedrock ---
+    try:
+        response = bedrock.invoke_model(
+            modelId=BEDROCK_MODEL_ID,
+            body=json.dumps({
+                "anthropic_version": "bedrock-2023-05-31",
+                "max_tokens": 512,
+                "messages": [{"role": "user", "content": question}],
+            })
+        )
+    except ClientError as e:
+        error_code = e.response["Error"]["Code"]
+        logger.error(json.dumps({
+            "message": "Bedrock ClientError",
+            "error_code": error_code,
+            "error": str(e),
+        }))
+        if error_code == "ThrottlingException":
+            raise BedrockThrottlingError()
+        raise
+
+    result = json.loads(response["body"].read())
+    answer = result["content"][0]["text"]
+
+    # --- Timestamps ---
+    now_utc = datetime.now(UTC)
+    timestamp_utc = now_utc.isoformat()
+    asked_at_jst = now_utc.astimezone(JST).isoformat()
+    expires_at = int((now_utc + timedelta(days=CHAT_TTL_DAYS)).timestamp())
+
+    # --- Save to DynamoDB (best-effort: don't fail the response if this fails) ---
+    try:
+        chat_table.put_item(Item={
+            "session_id": session_id,
+            "timestamp": timestamp_utc,
+            "question": question,
+            "answer": answer,
+            "model_id": BEDROCK_MODEL_ID,
+            "expires_at": expires_at,
+        })
+        logger.info(json.dumps({
+            "message": "Chat history saved",
+            "session_id": session_id,
+        }))
+    except Exception as e:
+        # DynamoDB保存失敗はログに残すが、レスポンスは返す
+        logger.error(json.dumps({
+            "message": "Failed to save chat history",
+            "error": str(e),
+            "session_id": session_id,
+        }))
+
+    return {
+        "question": question,
+        "answer": answer,
+        "session_id": session_id,
+        "model": BEDROCK_MODEL_ID,
+        "asked_at": asked_at_jst,
+    }
+
+
+# ---------------------------------------------------------------------------
+# CRUD operations (Project D)
+# ---------------------------------------------------------------------------
 def create_item(data):
     """Create a new item in DynamoDB."""
     item = {
         "id": str(uuid.uuid4()),
         "name": data.get("name", "Unnamed"),
         "price": data.get("price", 0),
-        "created_at": datetime.now().isoformat(),
+        "created_at": datetime.now(UTC).isoformat(),
     }
     table.put_item(Item=item)
     return item
 
 
 def get_item(item_id):
-    """Get a single item by ID. Raises ItemNotFoundError if missing."""
+    """Get a single item by ID."""
     result = table.get_item(Key={"id": item_id})
     item = result.get("Item")
     if not item:
         raise ItemNotFoundError(item_id)
     return item
-
-
-class ItemNotFoundError(Exception):
-    """Raised when a requested item does not exist in DynamoDB."""
-    def __init__(self, item_id):
-        self.item_id = item_id
-        super().__init__(f"Item not found: {item_id}")
 
 
 def list_items():
@@ -165,7 +257,7 @@ def update_item(item_id, data):
         return {"error": "No fields to update"}
 
     update_parts.append("updated_at = :updated_at")
-    values[":updated_at"] = datetime.now().isoformat()
+    values[":updated_at"] = datetime.now(UTC).isoformat()
 
     table.update_item(
         Key={"id": item_id},
@@ -182,6 +274,9 @@ def delete_item(item_id):
     return {"message": "Deleted", "id": item_id}
 
 
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
 def api_response(status_code, body):
     """Build API Gateway proxy integration response."""
     return {
@@ -194,23 +289,14 @@ def api_response(status_code, body):
     }
 
 
-def ask_bedrock(data):
-    """Call Amazon Bedrock Claude model and return the response."""
-    prompt = data.get("prompt", "Hello!")
-    
-    response = bedrock.invoke_model(
-        modelId="jp.anthropic.claude-haiku-4-5-20251001-v1:0",
-        body=json.dumps({
-            "anthropic_version": "bedrock-2023-05-31",
-            "max_tokens": 512,
-            "messages": [
-                {"role": "user", "content": prompt}
-            ]
-        })
-    )
-    
-    result = json.loads(response["body"].read())
-    return {
-        "prompt": prompt,
-        "response": result["content"][0]["text"]
-    }
+class ItemNotFoundError(Exception):
+    """Raised when a requested item does not exist in DynamoDB."""
+    def __init__(self, item_id):
+        self.item_id = item_id
+        super().__init__(f"Item not found: {item_id}")
+
+
+class BedrockThrottlingError(Exception):
+    """Raised when Bedrock returns ThrottlingException."""
+    def __init__(self):
+        super().__init__("Bedrock is currently busy. Please try again later.")
