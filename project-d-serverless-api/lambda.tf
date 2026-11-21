@@ -20,9 +20,11 @@ resource "aws_lambda_function" "api" {
 
   environment {
     variables = {
-      TABLE_NAME = aws_dynamodb_table.main.name
+      TABLE_NAME              = aws_dynamodb_table.main.name
       CHAT_HISTORY_TABLE_NAME = aws_dynamodb_table.chat_history.name
-      LOG_LEVEL  = "INFO"
+      LOG_LEVEL               = "INFO"
+      GUARDRAIL_ID            = aws_bedrock_guardrail.project_f.guardrail_id
+      GUARDRAIL_VERSION       = aws_bedrock_guardrail_version.project_f.version
     }
   }
 

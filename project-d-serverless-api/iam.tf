@@ -103,6 +103,7 @@ data "aws_iam_policy_document" "lambda_bedrock" {
   statement {
     actions = [
       "bedrock:InvokeModel",
+      "bedrock:ApplyGuardrail",
     ]
 
     resources = [
