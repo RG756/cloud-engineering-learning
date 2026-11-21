@@ -23,6 +23,9 @@ table = dynamodb.Table(os.environ["TABLE_NAME"])
 chat_table = dynamodb.Table(os.environ["CHAT_HISTORY_TABLE_NAME"])
 
 BEDROCK_MODEL_ID = "jp.anthropic.claude-haiku-4-5-20251001-v1:0"
+# Guardrails設定
+GUARDRAIL_ID      = os.environ.get("GUARDRAIL_ID", "")
+GUARDRAIL_VERSION = os.environ.get("GUARDRAIL_VERSION", "DRAFT")
 CHAT_TTL_DAYS = 30  # 会話履歴の保持期間
 
 # Timezone
@@ -70,6 +73,10 @@ def handler(event, context):
             return api_response(200, delete_item(event["id"]))
         else:
             return api_response(400, {"error": f"Unknown action: {action}"})
+    
+    except GuardrailsBlockedError as e:
+        logger.warning("Guardrails blocked request")
+        return api_response(400, {"error": str(e)})
 
     except ItemNotFoundError as e:
         logger.warning(f"Item not found: {e.item_id}")
@@ -154,6 +161,8 @@ def ask_bedrock(data):
     try:
         response = bedrock.invoke_model(
             modelId=BEDROCK_MODEL_ID,
+            guardrailIdentifier=GUARDRAIL_ID,
+            guardrailVersion=GUARDRAIL_VERSION,
             body=json.dumps({
                 "anthropic_version": "bedrock-2023-05-31",
                 "max_tokens": 512,
@@ -172,6 +181,16 @@ def ask_bedrock(data):
         raise
 
     result = json.loads(response["body"].read())
+
+    # Guardrailsによるブロック判定
+    if result.get("amazon-bedrock-guardrailAction") == "INTERVENED":
+        logger.warning(json.dumps({
+            "message": "Guardrails blocked the response",
+            "session_id": session_id,
+            "question": question[:100],
+        }))
+        raise GuardrailsBlockedError()
+
     answer = result["content"][0]["text"]
 
     # --- Timestamps ---
@@ -300,3 +319,8 @@ class BedrockThrottlingError(Exception):
     """Raised when Bedrock returns ThrottlingException."""
     def __init__(self):
         super().__init__("Bedrock is currently busy. Please try again later.")
+
+class GuardrailsBlockedError(Exception):
+    """Raised when Bedrock Guardrails blocks the input or output."""
+    def __init__(self):
+        super().__init__("この質問にはお答えできません。")
