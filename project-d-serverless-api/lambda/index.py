@@ -11,6 +11,7 @@ import boto3
 import logging
 import os
 import uuid
+import time
 from datetime import datetime, timezone, timedelta
 from botocore.exceptions import ClientError
 
@@ -73,7 +74,7 @@ def handler(event, context):
             return api_response(200, delete_item(event["id"]))
         else:
             return api_response(400, {"error": f"Unknown action: {action}"})
-    
+
     except GuardrailsBlockedError as e:
         logger.warning("Guardrails blocked request")
         return api_response(400, {"error": str(e)})
@@ -158,40 +159,82 @@ def ask_bedrock(data):
     session_id = data.get("session_id") or str(uuid.uuid4())
 
     # --- Call Bedrock ---
+    cloudwatch = boto3.client("cloudwatch", region_name="ap-northeast-1")
+    start_time = time.perf_counter()
+    bedrock_error = False
+
     try:
-        response = bedrock.invoke_model(
-            modelId=BEDROCK_MODEL_ID,
-            guardrailIdentifier=GUARDRAIL_ID,
-            guardrailVersion=GUARDRAIL_VERSION,
-            body=json.dumps({
-                "anthropic_version": "bedrock-2023-05-31",
-                "max_tokens": 512,
-                "messages": [{"role": "user", "content": question}],
-            })
-        )
-    except ClientError as e:
-        error_code = e.response["Error"]["Code"]
-        logger.error(json.dumps({
-            "message": "Bedrock ClientError",
-            "error_code": error_code,
-            "error": str(e),
-        }))
-        if error_code == "ThrottlingException":
-            raise BedrockThrottlingError()
-        raise
+        try:
+            response = bedrock.invoke_model(
+                modelId=BEDROCK_MODEL_ID,
+                guardrailIdentifier=GUARDRAIL_ID,
+                guardrailVersion=GUARDRAIL_VERSION,
+                body=json.dumps({
+                    "anthropic_version": "bedrock-2023-05-31",
+                    "max_tokens": 512,
+                    "messages": [{"role": "user", "content": question}],
+                })
+            )
+        except ClientError as e:
+            bedrock_error = True
+            error_code = e.response["Error"]["Code"]
+            logger.error(json.dumps({
+                "message": "Bedrock ClientError",
+                "error_code": error_code,
+                "error": str(e),
+            }))
+            if error_code == "ThrottlingException":
+                raise BedrockThrottlingError()
+            raise
 
-    result = json.loads(response["body"].read())
+        result = json.loads(response["body"].read())
 
-    # Guardrailsによるブロック判定
-    if result.get("amazon-bedrock-guardrailAction") == "INTERVENED":
-        logger.warning(json.dumps({
-            "message": "Guardrails blocked the response",
-            "session_id": session_id,
-            "question": question[:100],
-        }))
-        raise GuardrailsBlockedError()
+        # Guardrailsによるブロック判定
+        if result.get("amazon-bedrock-guardrailAction") == "INTERVENED":
+            logger.warning(json.dumps({
+                "message": "Guardrails blocked the response",
+                "session_id": session_id,
+                "question": question[:100],
+            }))
+            raise GuardrailsBlockedError()
 
-    answer = result["content"][0]["text"]
+        answer = result["content"][0]["text"]
+
+    finally:
+        # --- Publish custom metrics to CloudWatch (best-effort) ---
+        latency_ms = (time.perf_counter() - start_time) * 1000
+        try:
+            cloudwatch.put_metric_data(
+                Namespace="Custom/BedrockAI",
+                MetricData=[
+                    {
+                        "MetricName": "BedrockLatency",
+                        "Value": latency_ms,
+                        "Unit": "Milliseconds",
+                        "Dimensions": [
+                            {"Name": "ModelId", "Value": BEDROCK_MODEL_ID}
+                        ],
+                    },
+                    {
+                        "MetricName": "BedrockErrors",
+                        "Value": 1 if bedrock_error else 0,
+                        "Unit": "Count",
+                        "Dimensions": [
+                            {"Name": "ModelId", "Value": BEDROCK_MODEL_ID}
+                        ],
+                    },
+                ],
+            )
+            logger.info(json.dumps({
+                "message": "Custom metrics published",
+                "latency_ms": round(latency_ms, 2),
+                "bedrock_error": bedrock_error,
+            }))
+        except Exception as e:
+            logger.error(json.dumps({
+                "message": "Failed to publish custom metrics",
+                "error": str(e),
+            }))
 
     # --- Timestamps ---
     now_utc = datetime.now(UTC)
@@ -199,7 +242,7 @@ def ask_bedrock(data):
     asked_at_jst = now_utc.astimezone(JST).isoformat()
     expires_at = int((now_utc + timedelta(days=CHAT_TTL_DAYS)).timestamp())
 
-    # --- Save to DynamoDB (best-effort: don't fail the response if this fails) ---
+    # --- Save to DynamoDB (best-effort) ---
     try:
         chat_table.put_item(Item={
             "session_id": session_id,
@@ -214,7 +257,6 @@ def ask_bedrock(data):
             "session_id": session_id,
         }))
     except Exception as e:
-        # DynamoDB保存失敗はログに残すが、レスポンスは返す
         logger.error(json.dumps({
             "message": "Failed to save chat history",
             "error": str(e),
@@ -228,7 +270,6 @@ def ask_bedrock(data):
         "model": BEDROCK_MODEL_ID,
         "asked_at": asked_at_jst,
     }
-
 
 # ---------------------------------------------------------------------------
 # CRUD operations (Project D)
