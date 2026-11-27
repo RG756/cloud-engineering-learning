@@ -192,7 +192,10 @@ resource "aws_cloudwatch_metric_alarm" "dynamodb_errors" {
 # =============================================================================
 #
 # Single-pane view of the entire stack's health.
-# Covers Lambda, API Gateway, and DynamoDB in one screen.
+# Row 1 (y=0):  Lambda Error Count / Lambda Duration
+# Row 2 (y=6):  API Gateway Latency / API Gateway 4xx-5xx
+# Row 3 (y=12): DynamoDB Read/Write Capacity / DynamoDB System Errors
+# Row 4 (y=18): Bedrock Latency / Bedrock Errors  ← Phase 4 追加
 
 resource "aws_cloudwatch_dashboard" "main" {
   dashboard_name = "${var.project_name}-dashboard"
@@ -296,7 +299,102 @@ resource "aws_cloudwatch_dashboard" "main" {
           period = 300
           region = "ap-northeast-1"
         }
+      },
+      {
+        type   = "metric"
+        x      = 0
+        y      = 18
+        width  = 12
+        height = 6
+        properties = {
+          title  = "Bedrock - Latency (ms)"
+          view   = "timeSeries"
+          metrics = [
+            ["Custom/BedrockAI", "BedrockLatency", "ModelId", "jp.anthropic.claude-haiku-4-5-20251001-v1:0"]
+          ]
+          period = 300
+          region = "ap-northeast-1"
+        }
+      },
+      {
+        type   = "metric"
+        x      = 12
+        y      = 18
+        width  = 12
+        height = 6
+        properties = {
+          title  = "Bedrock - Errors"
+          view   = "timeSeries"
+          metrics = [
+            ["Custom/BedrockAI", "BedrockErrors", "ModelId", "jp.anthropic.claude-haiku-4-5-20251001-v1:0"]
+          ]
+          period = 300
+          region = "ap-northeast-1"
+        }
       }
     ]
   })
+}
+
+# =============================================================================
+# CloudWatch Alarm - Bedrock Latency (Phase 4)
+# =============================================================================
+#
+# Fires when Bedrock average response time exceeds 10 seconds over 5 minutes.
+# Custom metric published by Lambda via PutMetricData.
+# Namespace: Custom/BedrockAI (must match index.py exactly)
+
+resource "aws_cloudwatch_metric_alarm" "bedrock_latency" {
+  alarm_name          = "${var.project_name}-bedrock-latency"
+  comparison_operator = "GreaterThanOrEqualToThreshold"
+  evaluation_periods  = 1
+  metric_name         = "BedrockLatency"
+  namespace           = "Custom/BedrockAI"
+  period              = 300
+  statistic           = "Average"
+  threshold           = 10000
+  alarm_description   = "Bedrock average latency exceeded 10 seconds"
+
+  dimensions = {
+    ModelId = "jp.anthropic.claude-haiku-4-5-20251001-v1:0"
+  }
+
+  alarm_actions             = [aws_sns_topic.alarm.arn]
+  ok_actions                = [aws_sns_topic.alarm.arn]
+  treat_missing_data        = "notBreaching"
+
+  tags = {
+    Project = var.project_name
+  }
+}
+
+# =============================================================================
+# CloudWatch Alarm - Bedrock Errors (Phase 4)
+# =============================================================================
+#
+# Fires when any Bedrock error occurs within a 5-minute window.
+# Custom metric published by Lambda via PutMetricData.
+
+resource "aws_cloudwatch_metric_alarm" "bedrock_errors" {
+  alarm_name          = "${var.project_name}-bedrock-errors"
+  comparison_operator = "GreaterThanOrEqualToThreshold"
+  evaluation_periods  = 1
+  metric_name         = "BedrockErrors"
+  namespace           = "Custom/BedrockAI"
+  period              = 300
+  statistic           = "Sum"
+  threshold           = 1
+  alarm_description   = "Bedrock errors detected"
+
+  dimensions = {
+    ModelId = "jp.anthropic.claude-haiku-4-5-20251001-v1:0"
+  }
+
+  alarm_actions             = [aws_sns_topic.alarm.arn]
+  ok_actions                = [aws_sns_topic.alarm.arn]
+  treat_missing_data        = "notBreaching"
+
+  tags = {
+    Project = var.project_name
+  }
 }

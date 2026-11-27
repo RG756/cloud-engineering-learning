@@ -117,3 +117,20 @@ resource "aws_iam_role_policy" "lambda_bedrock" {
   role   = aws_iam_role.lambda_role.id
   policy = data.aws_iam_policy_document.lambda_bedrock.json
 }
+
+# Policy: Allow Lambda to publish custom metrics to CloudWatch
+data "aws_iam_policy_document" "lambda_cloudwatch_metrics" {
+  statement {
+    actions = [
+      "cloudwatch:PutMetricData",
+    ]
+
+    resources = ["*"]
+  }
+}
+
+resource "aws_iam_role_policy" "lambda_cloudwatch_metrics" {
+  name   = "${var.project_name}-lambda-cloudwatch-metrics"
+  role   = aws_iam_role.lambda_role.id
+  policy = data.aws_iam_policy_document.lambda_cloudwatch_metrics.json
+}
